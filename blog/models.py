@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+from django.urls import reverse
 
 
 # Create your models here.
@@ -28,7 +29,7 @@ class Post(models.Model):
                                 choices=STATUS_CHOICES, default='draft')
 
     objects = models.Manager() #Our default manager
-    published = PublishManager() # Our custom manager
+    published = PublishManager() # Our custom manager :Note down below
     
 
     class Meta:
@@ -36,6 +37,12 @@ class Post(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse('blog:post_detail',
+                            args=[self.publish.year, 
+                                self.publish.month, 
+                                self.publish.day, self.slug])
 
 '''
 There are two ways to add or customize managers for your models: you can
