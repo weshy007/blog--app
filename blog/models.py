@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.utils import timezone
 from django.urls import reverse
+from django.utils import timezone
+from taggit.managers import TaggableManager
 
 
 # Create your models here.
@@ -30,6 +31,7 @@ class Post(models.Model):
 
     objects = models.Manager() #Our default manager
     published = PublishManager() # Our custom manager :Note down below
+    tags = TaggableManager()
     
 
     class Meta:
