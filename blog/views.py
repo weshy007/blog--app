@@ -1,10 +1,11 @@
+from hashlib import new
 from django.core.mail import send_mail
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import ListView
 
-from .forms import EmailPostForm
-from .models import Post
+from .forms import EmailPostForm, CommentForm
+from .models import Post, Comment
 
 
 # Create your views here.
@@ -42,7 +43,34 @@ def post_detail(request, year, month, day, post):
                                     publish__month=month,
                                     publish__day=day)
 
-    return render(request, 'list_detail.html', {'post': post})
+    # List of active comments for this post
+    comments = post.comments.filter(active=True)
+
+    new_comment = None
+
+    if request.method == 'POST':
+        # Comment was posted 
+        comment_form = CommentForm(request.POST)
+
+        if comment_form.is_valid():
+            # Create comment object and don't save to db yet
+            new_comment = comment_form.save(commit=False)
+            # Assign the current comment to the post
+            new_comment.post = post
+            # Save the new comment to db
+            new_comment.save()
+
+    else:
+        comment_form = CommentForm()
+
+    context = {
+        'post': post,
+        'comments': comments,
+        'new_comment': new_comment,
+        'comment_form': comment_form
+        }
+
+    return render(request, 'list_detail.html', context)
 
 
 def post_share(request, post_id):
@@ -57,13 +85,12 @@ def post_share(request, post_id):
             # Form fields are valid && passed validation
             cd = form.cleaned_data
             post_url = request.build_absolute_uri(post.get_absolute_url())
-            
+
             subject = f"{cd['name']} recommends you read {post.title}"
             message = f"Read {post.title} at {post_url}\n \n {cd['name']}\'s comments: {cd['comments']}"
             send_mail(subject, message, 'admin@myblog.com',[cd['to']])
 
             sent = True
-
     
     else:
         form = EmailPostForm()
