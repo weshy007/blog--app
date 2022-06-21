@@ -28,7 +28,7 @@ def post_list(request, tag_slug=None):
     paginator = Paginator(object_list, 3) # 3 posts per page
     page = request.GET.get('page')
     try:
-        post = paginator.page(page)
+        posts = paginator.page(page)
     except PageNotAnInteger:
         # If page is not an integer deliver the first page
         posts = paginator.page(1)
@@ -37,8 +37,8 @@ def post_list(request, tag_slug=None):
         posts = paginator.page(paginator.num_pages)
 
     context = {
-        'page': page,
         'posts': posts,
+        'page': page,
         'tag': tag,
     }
     return render(request, 'list.html', context)
